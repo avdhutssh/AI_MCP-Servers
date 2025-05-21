@@ -96,6 +96,15 @@ const utils = {
   
   // Allure reporting utility
   allure: {
+    // NEW: Clean results directory before run
+    cleanResultsDirectory: () => {
+      if (fs.existsSync(config.allureResultsDir)) {
+        fs.rmSync(config.allureResultsDir, { recursive: true, force: true });
+      }
+      fs.mkdirSync(config.allureResultsDir, { recursive: true });
+      utils.log('🧹 Cleaned Allure results directory', 'info');
+    },
+    
     startStep: (name) => {
       // Create simple step record
       return {
@@ -135,9 +144,9 @@ const utils = {
       // Create Allure test result JSON structure
       const result = {
         uuid: uuid,
-        historyId: crypto.createHash('md5').update('rahul-shetty-test').digest('hex'),
-        name: 'Rahul Shetty Academy Registration & Login Test',
-        fullName: 'Registration and Login Automation',
+        historyId: crypto.createHash('md5').update('avdhut-test').digest('hex'), // CHANGED: from rahul-shetty-test to avdhut-test
+        name: 'Avdhut Build - Registration & Login Test', // CHANGED: Added Avdhut Build
+        fullName: 'Avdhut Build - Registration and Login Automation', // CHANGED: Added Avdhut Build
         status: testData.success ? 'passed' : 'failed',
         stage: 'finished',
         start: testData.startTime,
@@ -151,10 +160,8 @@ const utils = {
         steps: steps,
         attachments: testData.attachments || [],
         parameters: [],
-        description: {
-          type: 'markdown',
-          value: `
-# Registration Test
+        // CHANGED: Format from object to string
+        description: `# Avdhut Build - Registration Test
 This test verifies that a new user can be registered and logged in via the API.
 
 ## Test Steps:
@@ -162,9 +169,7 @@ This test verifies that a new user can be registered and logged in via the API.
 2. Fill in user details
 3. Submit registration
 4. Verify API login
-5. Save credentials
-          `
-        }
+5. Save credentials`
       };
       
       if (!testData.success && testData.error) {
@@ -184,7 +189,7 @@ This test verifies that a new user can be registered and logged in via the API.
       // Save Allure result JSON
       fs.writeFileSync(
         path.join(config.allureResultsDir, `${uuid}-result.json`),
-        JSON.stringify(result)
+        JSON.stringify(result, null, 2) // CHANGED: Added formatting for better inspection
       );
       
       // Create categories.json
@@ -208,7 +213,7 @@ This test verifies that a new user can be registered and logged in via the API.
       
       fs.writeFileSync(
         path.join(config.allureResultsDir, 'categories.json'),
-        JSON.stringify(categories)
+        JSON.stringify(categories, null, 2) // CHANGED: Added formatting
       );
       
       // Create environment properties file
@@ -217,6 +222,7 @@ This test verifies that a new user can be registered and logged in via the API.
         'Browser.Version': 'latest',
         'URL': config.baseUrl,
         'Test.Environment': 'Local',
+        'Build': 'Avdhut Build', // ADDED: Avdhut Build name
         'Timestamp': new Date().toISOString()
       };
       
@@ -233,12 +239,12 @@ This test verifies that a new user can be registered and logged in via the API.
       const executor = {
         name: 'Playwright',
         type: 'playwright',
-        buildName: 'Avdhut Automation Build'
+        buildName: 'Avdhut Build' // CHANGED: from 'Rahul Shetty Automation Build'
       };
       
       fs.writeFileSync(
         path.join(config.allureResultsDir, 'executor.json'),
-        JSON.stringify(executor)
+        JSON.stringify(executor, null, 2) // CHANGED: Added formatting
       );
       
       utils.log(`📊 Allure results written to: ${config.allureResultsDir}`, 'success');
@@ -388,7 +394,7 @@ class DatabaseService {
 }
 
 // Registration and Login Manager
-class RegistrationManager {
+class RegistrationManager { // Name not changed to keep backward compatibility
   constructor() {
     this.browser = null;
     this.page = null;
@@ -489,8 +495,14 @@ class RegistrationManager {
       await this.page.locator('#userEmail').fill(email);
       await this.page.locator('input[formcontrolname="userMobile"]').fill(userData.phoneNumber);
       
-      // Select occupation
-      await this.page.locator('select[formcontrolname="occupation"]').selectOption(userData.occupation);
+      // CHANGED: Fix for occupation selector using JavaScript execution
+      await this.page.evaluate((occupation) => {
+        const select = document.querySelector('select[formcontrolname="occupation"]');
+        if (select) {
+          select.value = occupation;
+          select.dispatchEvent(new Event('change'));
+        }
+      }, userData.occupation);
       
       // Select gender
       const genderSelector = userData.gender.toLowerCase() === 'female' ? 
@@ -702,7 +714,10 @@ class RegistrationManager {
 
 // Main execution function
 async function runAutomation() {
-  utils.log('🤖 Starting automation process', 'info');
+  utils.log('🤖 Starting Avdhut Build automation process', 'info'); // CHANGED: Added Avdhut Build
+  
+  // Clean results directory
+  utils.allure.cleanResultsDirectory(); // ADDED: Clean allure results directory before run
   
   const manager = new RegistrationManager();
   const result = await manager.completeRegistrationAndLogin();
