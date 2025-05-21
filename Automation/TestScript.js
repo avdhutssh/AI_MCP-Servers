@@ -1,3 +1,4 @@
+// TestScriptWithAllure.js
 
 const { chromium } = require('@playwright/test');
 const fs = require('fs');
@@ -5,12 +6,15 @@ const path = require('path');
 const mysql = require('mysql2/promise');
 const ExcelJS = require('exceljs');
 const crypto = require('crypto');
+const allure = require('allure-commandline');
 
 // Configuration
 const config = {
   baseUrl: 'https://rahulshettyacademy.com/client',
   outputDir: path.join(__dirname, 'output'),
-  excelFile: 'newdata.xlsx', 
+  excelFile: 'newdata.xlsx',
+  allureResultsDir: path.join(__dirname, 'allure-results'),
+  allureReportDir: path.join(__dirname, 'allure-report'),
   database: {
     host: 'localhost',
     port: 3306,
@@ -73,12 +77,229 @@ const utils = {
   },
   
   // Log with timestamp and optional color
+  logs: [], // Store logs for reporting
+  
   log: (message, type = 'info') => {
     const timestamp = new Date().toLocaleTimeString();
     const colorCode = type === 'error' ? '\x1b[31m' : 
                       type === 'success' ? '\x1b[32m' : 
                       type === 'warn' ? '\x1b[33m' : '\x1b[0m';
     console.log(`${colorCode}[${timestamp}] ${message}\x1b[0m`);
+    
+    // Store log for report
+    utils.logs.push({
+      timestamp,
+      message,
+      type
+    });
+  },
+  
+  // Allure reporting utility
+  allure: {
+    startStep: (name) => {
+      // Create simple step record
+      return {
+        name: name,
+        startTime: Date.now(),
+        status: 'passed'
+      };
+    },
+    
+    endStep: (step, status = 'passed') => {
+      step.status = status;
+      step.endTime = Date.now();
+      return step;
+    },
+    
+    // Create JSON for Allure consumption
+    writeResults: (testData) => {
+      // Ensure directory exists
+      if (!fs.existsSync(config.allureResultsDir)) {
+        fs.mkdirSync(config.allureResultsDir, { recursive: true });
+      }
+      
+      const uuid = crypto.randomBytes(16).toString('hex');
+      
+      // Convert logs to steps if no steps were explicitly created
+      const logSteps = utils.logs.map(log => ({
+        name: log.message,
+        status: log.type === 'error' ? 'failed' : 
+                log.type === 'warn' ? 'broken' : 'passed',
+        stage: 'finished',
+        start: new Date(`1/1/2023 ${log.timestamp}`).getTime(),
+        stop: new Date(`1/1/2023 ${log.timestamp}`).getTime() + 1 // Add 1ms to ensure valid range
+      }));
+      
+      const steps = testData.steps.length > 0 ? testData.steps : logSteps;
+      
+      // Create Allure test result JSON structure
+      const result = {
+        uuid: uuid,
+        historyId: crypto.createHash('md5').update('rahul-shetty-test').digest('hex'),
+        name: 'Rahul Shetty Academy Registration & Login Test',
+        fullName: 'Registration and Login Automation',
+        status: testData.success ? 'passed' : 'failed',
+        stage: 'finished',
+        start: testData.startTime,
+        stop: Date.now(),
+        labels: [
+          { name: 'suite', value: 'Registration Tests' },
+          { name: 'feature', value: 'User Registration' },
+          { name: 'story', value: 'New User Registration' },
+          { name: 'severity', value: 'critical' }
+        ],
+        steps: steps,
+        attachments: testData.attachments || [],
+        parameters: [],
+        description: {
+          type: 'markdown',
+          value: `
+# Registration Test
+This test verifies that a new user can be registered and logged in via the API.
+
+## Test Steps:
+1. Navigate to registration page
+2. Fill in user details
+3. Submit registration
+4. Verify API login
+5. Save credentials
+          `
+        }
+      };
+      
+      if (!testData.success && testData.error) {
+        result.statusDetails = {
+          message: testData.error,
+          trace: testData.error
+        };
+        
+        result.extra = {
+          categories: [{
+            name: 'Registration issues',
+            matchedStatuses: ['failed', 'broken']
+          }]
+        };
+      }
+      
+      // Save Allure result JSON
+      fs.writeFileSync(
+        path.join(config.allureResultsDir, `${uuid}-result.json`),
+        JSON.stringify(result)
+      );
+      
+      // Create categories.json
+      const categories = [
+        {
+          name: 'Registration issues',
+          matchedStatuses: ['failed', 'broken'],
+          messageRegex: '.*registration.*'
+        },
+        {
+          name: 'Login API issues',
+          matchedStatuses: ['failed', 'broken'],
+          messageRegex: '.*login.*|.*API.*'
+        },
+        {
+          name: 'Database issues',
+          matchedStatuses: ['failed', 'broken'],
+          messageRegex: '.*database.*|.*SQL.*'
+        }
+      ];
+      
+      fs.writeFileSync(
+        path.join(config.allureResultsDir, 'categories.json'),
+        JSON.stringify(categories)
+      );
+      
+      // Create environment properties file
+      const envData = {
+        'Browser': 'Chromium',
+        'Browser.Version': 'latest',
+        'URL': config.baseUrl,
+        'Test.Environment': 'Local',
+        'Timestamp': new Date().toISOString()
+      };
+      
+      const envProperties = Object.entries(envData)
+        .map(([key, value]) => `${key}=${value}`)
+        .join('\n');
+      
+      fs.writeFileSync(
+        path.join(config.allureResultsDir, 'environment.properties'),
+        envProperties
+      );
+      
+      // Create executor.json
+      const executor = {
+        name: 'Playwright',
+        type: 'playwright',
+        buildName: 'Avdhut Automation Build'
+      };
+      
+      fs.writeFileSync(
+        path.join(config.allureResultsDir, 'executor.json'),
+        JSON.stringify(executor)
+      );
+      
+      utils.log(`📊 Allure results written to: ${config.allureResultsDir}`, 'success');
+    },
+    
+    // Helper to convert a screenshot to Allure attachment
+    createScreenshotAttachment: (name, buffer) => {
+      const fileName = `${crypto.randomBytes(8).toString('hex')}-screenshot.png`;
+      
+      // Ensure directory exists
+      if (!fs.existsSync(config.allureResultsDir)) {
+        fs.mkdirSync(config.allureResultsDir, { recursive: true });
+      }
+      
+      // Write screenshot file
+      fs.writeFileSync(path.join(config.allureResultsDir, fileName), buffer);
+      
+      // Return attachment metadata
+      return {
+        name: name,
+        source: fileName,
+        type: 'image/png'
+      };
+    },
+    
+    // Generate Allure report from results
+    generateReport: async () => {
+      utils.log('📊 Generating Allure report...', 'info');
+      
+      return new Promise((resolve) => {
+        const generation = allure([
+          'generate',
+          config.allureResultsDir,
+          '-o',
+          config.allureReportDir,
+          '--clean'
+        ]);
+        
+        generation.on('exit', code => {
+          if (code === 0) {
+            utils.log(`📊 Allure report generated at: ${config.allureReportDir}`, 'success');
+          } else {
+            utils.log(`❌ Allure report generation failed with code: ${code}`, 'error');
+          }
+          resolve(code === 0);
+        });
+      });
+    },
+    
+    // Open Allure report
+    openReport: async () => {
+      utils.log('📊 Opening Allure report...', 'info');
+      
+      return new Promise((resolve) => {
+        const open = allure(['open', config.allureReportDir]);
+        
+        open.on('exit', code => {
+          resolve(code === 0);
+        });
+      });
+    }
   }
 };
 
@@ -176,6 +397,22 @@ class RegistrationManager {
       email: null,
       password: 'SecurePass123' // Default password
     };
+    
+    // Test data for Allure reporting
+    this.testData = {
+      startTime: Date.now(),
+      steps: [],
+      attachments: [],
+      success: false,
+      error: null
+    };
+  }
+  
+  async _captureScreenshot(name) {
+    const screenshot = await this.page.screenshot();
+    const attachment = utils.allure.createScreenshotAttachment(name, screenshot);
+    this.testData.attachments.push(attachment);
+    return attachment;
   }
   
   async initialize() {
@@ -207,57 +444,87 @@ class RegistrationManager {
   }
   
   async navigateToRegistration() {
+    let step = utils.allure.startStep('Navigate to registration page');
     utils.log('🌐 Navigating to registration page', 'info');
     
-    await this.page.goto(config.baseUrl);
-    await this.page.waitForLoadState('networkidle');
+    try {
+      await this.page.goto(config.baseUrl);
+      await this.page.waitForLoadState('networkidle');
+      
+      // Capture screenshot
+      await this._captureScreenshot('Login Page');
+      
+      // Click "Register here" link
+      await this.page.locator('text=Register here').click();
+      
+      // Verify we're on the registration page
+      await this.page.waitForSelector('h1:text("Register")');
+      
+      // Capture screenshot
+      await this._captureScreenshot('Registration Page');
+      
+      utils.log('🌐 Registration page loaded', 'success');
+      utils.allure.endStep(step);
+    } catch (error) {
+      utils.log(`❌ Navigation failed: ${error.message}`, 'error');
+      utils.allure.endStep(step, 'failed');
+      throw error;
+    }
     
-    // Click "Register here" link
-    await this.page.locator('text=Register here').click();
-    
-    // Verify we're on the registration page
-    await this.page.waitForSelector('h1:text("Register")');
-    
-    utils.log('🌐 Registration page loaded', 'success');
+    this.testData.steps.push(step);
   }
   
   async fillRegistrationForm(userData) {
+    let step = utils.allure.startStep('Fill registration form');
     utils.log('📝 Filling registration form', 'info');
     
-    // Generate unique email
-    const email = utils.generateUniqueEmail(userData.firstName, userData.lastName);
-    this.credentials.email = email;
+    try {
+      // Generate unique email
+      const email = utils.generateUniqueEmail(userData.firstName, userData.lastName);
+      this.credentials.email = email;
+      
+      // Fill form fields
+      await this.page.locator('input[formcontrolname="firstName"]').fill(userData.firstName);
+      await this.page.locator('input[formcontrolname="lastName"]').fill(userData.lastName);
+      await this.page.locator('#userEmail').fill(email);
+      await this.page.locator('input[formcontrolname="userMobile"]').fill(userData.phoneNumber);
+      
+      // Select occupation
+      await this.page.locator('select[formcontrolname="occupation"]').selectOption(userData.occupation);
+      
+      // Select gender
+      const genderSelector = userData.gender.toLowerCase() === 'female' ? 
+        'input[value="Female"]' : 'input[value="Male"]';
+      await this.page.locator(genderSelector).click();
+      
+      // Enter password
+      await this.page.locator('input[formcontrolname="userPassword"]').fill(this.credentials.password);
+      await this.page.locator('input[formcontrolname="confirmPassword"]').fill(this.credentials.password);
+      
+      // Check 18+ checkbox
+      await this.page.locator('input[type="checkbox"]').click();
+      
+      // Capture screenshot
+      await this._captureScreenshot('Filled Registration Form');
+      
+      utils.log('📝 Registration form filled', 'success');
+      utils.allure.endStep(step);
+    } catch (error) {
+      utils.log(`❌ Form filling failed: ${error.message}`, 'error');
+      utils.allure.endStep(step, 'failed');
+      throw error;
+    }
     
-    // Fill form fields
-    await this.page.locator('input[formcontrolname="firstName"]').fill(userData.firstName);
-    await this.page.locator('input[formcontrolname="lastName"]').fill(userData.lastName);
-    await this.page.locator('#userEmail').fill(email);
-    await this.page.locator('input[formcontrolname="userMobile"]').fill(userData.phoneNumber);
-    
-    // Select occupation
-    await this.page.locator('select[formcontrolname="occupation"]').selectOption(userData.occupation);
-    
-    // Select gender
-    const genderSelector = userData.gender.toLowerCase() === 'female' ? 
-      'input[value="Female"]' : 'input[value="Male"]';
-    await this.page.locator(genderSelector).click();
-    
-    // Enter password
-    await this.page.locator('input[formcontrolname="userPassword"]').fill(this.credentials.password);
-    await this.page.locator('input[formcontrolname="confirmPassword"]').fill(this.credentials.password);
-    
-    // Check 18+ checkbox
-    await this.page.locator('input[type="checkbox"]').click();
-    
-    utils.log('📝 Registration form filled', 'success');
+    this.testData.steps.push(step);
   }
   
   async submitRegistration() {
+    let step = utils.allure.startStep('Submit registration');
     utils.log('🚀 Submitting registration', 'info');
     
-    await this.page.locator('#login').click();
-    
     try {
+      await this.page.locator('#login').click();
+      
       // Wait for success message or error
       const successLocator = this.page.locator('h1:text("Account Created Successfully")');
       const errorLocator = this.page.locator('div.invalid-feedback, .error-message');
@@ -270,22 +537,31 @@ class RegistrationManager {
             const errorText = await errorLocator.textContent();
             return { success: false, message: errorText || 'Registration failed' };
           })
-      ]);
+      ]).catch(() => ({ success: false, message: 'Timeout waiting for registration response' }));
+      
+      // Capture screenshot
+      await this._captureScreenshot('Registration Result');
       
       if (result.success) {
         utils.log('✅ Registration successful', 'success');
+        utils.allure.endStep(step);
         return true;
       } else {
         utils.log(`❌ Registration failed: ${result.message}`, 'error');
+        utils.allure.endStep(step, 'failed');
         return false;
       }
     } catch (error) {
       utils.log(`⚠️ Error during registration: ${error.message}`, 'error');
+      utils.allure.endStep(step, 'broken');
       return false;
+    } finally {
+      this.testData.steps.push(step);
     }
   }
   
   async apiLogin() {
+    let step = utils.allure.startStep('API Login');
     utils.log('🔑 Attempting API login', 'info');
     
     try {
@@ -312,6 +588,7 @@ class RegistrationManager {
       
       if (loginResponse.ok() && responseData.token) {
         utils.log('🔑 API Login successful', 'success');
+        utils.allure.endStep(step);
         return {
           success: true,
           token: responseData.token,
@@ -319,6 +596,7 @@ class RegistrationManager {
         };
       } else {
         utils.log(`❌ API Login failed: ${responseData.message || 'Unknown error'}`, 'error');
+        utils.allure.endStep(step, 'failed');
         return {
           success: false,
           message: responseData.message || 'Unknown error'
@@ -326,23 +604,31 @@ class RegistrationManager {
       }
     } catch (error) {
       utils.log(`❌ API Login error: ${error.message}`, 'error');
+      utils.allure.endStep(step, 'broken');
       return {
         success: false,
         message: error.message
       };
+    } finally {
+      this.testData.steps.push(step);
     }
   }
   
   async saveCredentialsToExcel() {
+    let step = utils.allure.startStep('Save credentials to Excel');
     utils.log('💾 Saving credentials to Excel', 'info');
     
     try {
       const filePath = await utils.writeToExcel(this.credentials);
       utils.log(`💾 Credentials saved to: ${filePath}`, 'success');
+      utils.allure.endStep(step);
       return true;
     } catch (error) {
       utils.log(`❌ Error saving credentials: ${error.message}`, 'error');
+      utils.allure.endStep(step, 'failed');
       return false;
+    } finally {
+      this.testData.steps.push(step);
     }
   }
   
@@ -372,17 +658,35 @@ class RegistrationManager {
       }
       
       // Step 5: If login successful, save credentials to Excel
+      let excelSaved = false;
       if (loginResult.success) {
-        await this.saveCredentialsToExcel();
+        excelSaved = await this.saveCredentialsToExcel();
       }
+      
+      // Prepare results for allure
+      this.testData.success = registrationSuccess && loginResult.success;
+      
+      // Write Allure results
+      utils.allure.writeResults(this.testData);
+      
+      // Generate Allure report
+      await utils.allure.generateReport();
       
       return {
         registrationSuccess,
         loginSuccess: loginResult.success,
-        credentials: this.credentials
+        credentials: this.credentials,
+        excelSaved
       };
     } catch (error) {
       utils.log(`❌ Error in completion process: ${error.message}`, 'error');
+      
+      this.testData.success = false;
+      this.testData.error = error.message;
+      
+      // Write Allure results even for failures
+      utils.allure.writeResults(this.testData);
+      await utils.allure.generateReport();
       
       return {
         registrationSuccess: false,
@@ -407,6 +711,11 @@ async function runAutomation() {
     utils.log('✅ Automation completed successfully!', 'success');
     utils.log(`Email: ${result.credentials.email}`, 'info');
     utils.log(`Password: ${result.credentials.password}`, 'info');
+    
+    // Open Allure report
+    await utils.allure.openReport().catch(() => {
+      utils.log('Could not automatically open report. Run "npx allure open allure-report" manually.', 'warn');
+    });
   } else {
     utils.log('❌ Automation completed with errors', 'error');
   }
