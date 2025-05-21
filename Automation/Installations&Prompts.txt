@@ -1,0 +1,52 @@
+Install node, npm, python
+pip install mysql-mcp-server
+pip install uv
+
+------------------------------------------------------------------
+------------------------------------------------------------------
+MCP Servers Repos:
+https://github.com/microsoft/playwright-mcp
+https://github.com/designcomputer/mysql_mcp_server
+https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem
+https://github.com/dkmaker/mcp-rest-api
+https://github.com/negokaz/excel-mcp-server
+------------------------------------------------------------------
+------------------------------------------------------------------
+
+Prompts:
+
+Navigate to https://rahulshettyacademy.com/client
+and click on "Don't have an account? Register here"
+
+------------------------------------------------------------------
+Navigate to https://rahulshettyacademy.com/client
+and click on "Don't have an account? Register here"
+
+Pull any random data from RegistrationDetails and UserNames tables and
+register them in the page, if anything is missing, use you own knowledge to input
+If user is already register, create new data and use it for registration
+
+------------------------------------------------------------------
+Navigate to https://rahulshettyacademy.com/client
+and click on "Don't have an account? Register here"
+
+Pull any random data from RegistrationDetails and UserNames tables and
+register them in the page, if anything is missing, use you own knowledge to input
+If user is already register, create new data and use it for registration
+
+And then read attach postman request to understand the API contract and make a login
+call with necessary information and confirm if login call is success
+------------------------------------------------------------------
+Navigate to https://rahulshettyacademy.com/client
+and click on "Don't have an account? Register here"
+
+Pull any random data from RegistrationDetails and UserNames tables and
+register them in the page, if anything is missing, use you own knowledge to input
+If user is already register, create new data and use it for registration
+
+And then read attach postman request to understand the API contract and make a login
+call with necessary information and confirm if login call is success
+
+Once confirmed, finally new registered details of email and password write to newdata.xlsx file in appropriate columns
+
+------------------------------------------------------------------
