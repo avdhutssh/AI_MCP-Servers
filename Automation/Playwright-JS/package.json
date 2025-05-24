@@ -1,0 +1,32 @@
+{
+  "name": "playwright-js-framework",
+  "version": "1.0.0",
+  "description": "Playwright automation framework using Page Object Model pattern",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:ui": "node tests/ui/RegistrationTest.js",
+    "test:api": "node tests/api/LoginApiTest.js",
+    "report": "npx allure open allure-report",
+    "clean": "rimraf allure-results",
+    "test:with-report": "npm run clean && npm run test && npm run report"
+  },
+  "keywords": [
+    "playwright",
+    "automation",
+    "testing",
+    "pom"
+  ],
+  "author": "Avdhut",
+  "license": "ISC",
+  "dependencies": {
+    "@playwright/test": "^1.35.0",
+    "allure-commandline": "^2.23.0",
+    "crypto": "^1.0.1",
+    "exceljs": "^4.3.0",
+    "mysql2": "^3.3.5"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.1"
+  }
+}
