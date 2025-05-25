@@ -40,17 +40,21 @@
         "HEADER_Accept": "application/json"
       }
     },
-        "excel": {
-            "command": "cmd",
-            "args": ["/c", "npx", "--yes", "@negokaz/excel-mcp-server"],
-            "env": {
-                "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
-            }
-        },
-        "shell":
-        {
-            "command": "C:\\Users\\Avdhut\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\uv.exe",
-            "args": ["--directory", "C:\\Users\\Avdhut\\Desktop\\Learnings\\GithubProjects\\MCP-Servers\\shellserver", "run", "server.py"]
-        }
+      "excel": {
+        "command": "cmd",
+        "args": ["/c", "npx", "--yes", "@negokaz/excel-mcp-server"],
+        "env": {
+            "EXCEL_MCP_PAGING_CELLS_LIMIT": "4000"
+          }
+      },
+        // "shell":
+        // {
+        //     "command": "C:\\Users\\Avdhut\\AppData\\Local\\Programs\\Python\\Python313\\Scripts\\uv.exe",
+        //     "args": ["--directory", "C:\\Users\\Avdhut\\Desktop\\Learnings\\GithubProjects\\MCP-Servers\\shellserver", "run", "server.py"]
+        // },
+      "docker-shell": {
+        "command": "docker",
+        "args": ["run", "-i",  "--rm", "--init", "-e", "DOCKER_CONTAINER=true", "shellserver-app"]
+      }
     }
   }
