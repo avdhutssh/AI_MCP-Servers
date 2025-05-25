@@ -41,7 +41,7 @@ class BaseTest {
      * @returns {Promise<void>}
      */
     async setup() {
-        log(`Setting up test: ${this.testName}`, 'info');
+        log('Setting up test: ${this.testName}', 'info');
         
         // Launch browser
         this.browser = await chromium.launch({
@@ -117,7 +117,7 @@ class BaseTest {
         
         const screenshot = await this.page.screenshot();
         allureReporter.createScreenshotAttachment(name, screenshot);
-        log(`Screenshot taken: ${name}`, 'info');
+        log('Screenshot taken: ${name}', 'info');
     }
     
     /**
