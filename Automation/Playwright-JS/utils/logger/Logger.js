@@ -1,5 +1,4 @@
 // Logger.js
-// Logging utility for the automation framework
 
 /**
  * Storage for logs
