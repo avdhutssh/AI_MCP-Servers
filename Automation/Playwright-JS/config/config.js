@@ -3,9 +3,9 @@
 
 const path = require('path');
 
-const config = {
-    // Base URL for the application
-    baseUrl: 'https://rahulshettyacademy.com/client',
+const config = {    // Base URL for the application
+    baseUrl: 'https://rahulshettyacademy.com/api/ecom',
+    clientUrl: 'https://rahulshettyacademy.com/client',
     
     // Output directory for reports and other files
     outputDir: path.join(__dirname, '..', '..', 'output'),
@@ -32,10 +32,11 @@ const config = {
         slowMotion: 100,  // Slow down actions by 100ms for visualization
         screenshot: 'only-on-failure'  // 'on', 'off', or 'only-on-failure'
     },
-    
-    // Test data configuration
+      // Test data configuration
     testData: {
-        defaultPassword: 'SecurePass123'
+        defaultPassword: 'SecurePass123',
+        userEmail: 'anshika@gmail.com',
+        userPassword: 'Iamking@000'
     },
     
     // Timeouts
