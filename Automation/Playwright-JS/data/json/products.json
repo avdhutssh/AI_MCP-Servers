@@ -1,0 +1,32 @@
+﻿[
+    {
+        "id": "p001",
+        "name": "Smartphone X",
+        "price": 499.99,
+        "category": "electronics",
+        "brand": "Samsung",
+        "description": "Latest smartphone with 128GB storage and 8GB RAM",
+        "rating": 4.5,
+        "features": ["5G", "Water resistant", "48MP camera"]
+    },
+    {
+        "id": "p002",
+        "name": "Laptop Pro",
+        "price": 1299.99,
+        "category": "electronics",
+        "brand": "Apple",
+        "description": "Powerful laptop for professionals with 16GB RAM",
+        "rating": 4.8,
+        "features": ["SSD", "16GB RAM", "10-hour battery"]
+    },
+    {
+        "id": "p003",
+        "name": "Wireless Headphones",
+        "price": 149.99,
+        "category": "electronics",
+        "brand": "Sony",
+        "description": "Noise cancelling wireless headphones",
+        "rating": 4.3,
+        "features": ["Noise cancelling", "30-hour battery", "Touch controls"]
+    }
+]
