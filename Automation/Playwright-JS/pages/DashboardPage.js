@@ -11,6 +11,13 @@ class DashboardPage {
         this.cartButton = this.page.locator('[routerlink*="cart"]');
         this.orderButton = this.page.locator('[routerlink*="myorders"]');
         this.signOutButton = this.page.locator('button:has-text("Sign Out")');
+        
+        // Filter locators
+        this.priceSlider = this.page.locator('.ng5-slider');
+        this.categoryCheckboxes = this.page.locator('.form-check-input[type="checkbox"]');
+        this.brandRadioButtons = this.page.locator('.form-check-input[type="radio"]');
+        this.clearFilterButton = this.page.locator('button:has-text("Clear")');
+        this.ratingStars = this.page.locator('.star');
     }
     
     /**
@@ -93,10 +100,126 @@ class DashboardPage {
     
     /**
      * Sign out from the application
-     */
-    async signOut() {
+     */    async signOut() {
         await this.signOutButton.click();
         await this.page.waitForLoadState('networkidle');
+    }
+
+    /**
+     * Navigate to dashboard page
+     * @param {string} baseUrl - Base URL of the application
+     */
+    async navigate(baseUrl) {
+        await this.page.goto(baseUrl);
+        await this.page.waitForLoadState('networkidle');
+    }
+    
+    /**
+     * Apply price filter
+     * @param {number} minPrice - Minimum price
+     * @param {number} maxPrice - Maximum price
+     */
+    async applyPriceFilter(minPrice, maxPrice) {
+        // Price slider handling is complex and might require custom implementation
+        // For demonstration purposes, we'll use a simplified version
+        await this.page.locator('.min-price-input').fill(minPrice.toString());
+        await this.page.locator('.max-price-input').fill(maxPrice.toString());
+        await this.page.locator('button:has-text("Apply")').click();
+    }
+    
+    /**
+     * Apply category filter
+     * @param {string} category - Category name
+     */
+    async applyCategoryFilter(category) {
+        const categoryCheckbox = this.page.locator('.form-check-label:text-is("${category}")')
+            .locator('..').locator('input[type="checkbox"]');
+        await categoryCheckbox.check();
+    }
+    
+    /**
+     * Apply brand filter
+     * @param {string} brand - Brand name
+     */
+    async applyBrandFilter(brand) {
+        const brandRadio = this.page.locator('.form-check-label:text-is("${brand}")')
+            .locator('..').locator('input[type="radio"]');
+        await brandRadio.check();
+    }
+    
+    /**
+     * Apply rating filter
+     * @param {number} rating - Minimum rating (1-5)
+     */
+    async applyRatingFilter(rating) {
+        const ratingSelector = this.page.locator('.ratings .star:nth-child(${rating})');
+        await ratingSelector.click();
+    }
+    
+    /**
+     * Clear all filters
+     */
+    async clearFilters() {
+        await this.clearFilterButton.click();
+    }
+    
+    /**
+     * Get product prices
+     * @returns {Promise<number[]>} List of product prices
+     */
+    async getProductPrices() {
+        const count = await this.productCards.count();
+        const prices = [];
+        
+        for (let i = 0; i < count; i++) {
+            const card = this.productCards.nth(i);
+            const priceText = await card.locator('.product-price').textContent();
+            const price = parseFloat(priceText.replace(/[^\d.]/g, ''));
+            prices.push(price);
+        }
+        
+        return prices;
+    }
+    
+    /**
+     * Get product categories
+     * @returns {Promise<string[]>} List of product categories
+     */
+    async getProductCategories() {
+        const count = await this.productCards.count();
+        const categories = [];
+        
+        for (let i = 0; i < count; i++) {
+            const card = this.productCards.nth(i);
+            const category = await card.locator('.product-category').textContent();
+            categories.push(category);
+        }
+        
+        return categories;
+    }
+    
+    /**
+     * Get product brands
+     * @returns {Promise<string[]>} List of product brands
+     */
+    async getProductBrands() {
+        const count = await this.productCards.count();
+        const brands = [];
+        
+        for (let i = 0; i < count; i++) {
+            const card = this.productCards.nth(i);
+            const brand = await card.locator('.product-brand').textContent();
+            brands.push(brand);
+        }
+        
+        return brands;
+    }
+    
+    /**
+     * Get the number of products displayed
+     * @returns {Promise<number>} Number of products
+     */    async getProductCount() {
+        return await this.productCards.count();
     }
 }
 
