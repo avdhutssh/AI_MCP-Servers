@@ -87,7 +87,7 @@ class RegistrationTest extends BaseTest {
             
             // Check registration result
             if (!registrationResult.success) {
-                log(`Registration failed: ${registrationResult.message}`, 'error');
+                log('Registration failed: ${registrationResult.message}', 'error');
                 await this.teardown(false, registrationResult.message);
                 return {
                     registrationSuccess: false,
@@ -104,7 +104,7 @@ class RegistrationTest extends BaseTest {
             
             // Check login result
             if (!loginResult.success) {
-                log(`API Login failed: ${loginResult.message}`, 'error');
+                log('API Login failed: ${loginResult.message}', 'error');
                 await this.teardown(false, loginResult.message);
                 return {
                     registrationSuccess: true,
@@ -119,7 +119,7 @@ class RegistrationTest extends BaseTest {
             // Step 6: Save credentials to Excel
             log('Saving credentials to Excel', 'info');
             const excelPath = await Utils.writeToExcel(this.credentials);
-            log(`Credentials saved to: ${excelPath}`, 'success');
+            log('Credentials saved to: ${excelPath}', 'success');
             
             // Complete test
             await this.teardown(true);
@@ -131,7 +131,7 @@ class RegistrationTest extends BaseTest {
                 credentials: this.credentials
             };
         } catch (error) {
-            log(`Test execution error: ${error.message}`, 'error');
+            log('Test execution error: ${error.message}', 'error');
             await this.teardown(false, error.message);
             await this.generateReport();
             
@@ -152,8 +152,8 @@ if (require.main === module) {
         .then(result => {
             if (result.registrationSuccess && result.loginSuccess) {
                 log('Test completed successfully!', 'success');
-                log(`Email: ${result.credentials.email}`, 'info');
-                log(`Password: ${result.credentials.password}`, 'info');
+                log('Email: ${result.credentials.email}', 'info');
+                log('Password: ${result.credentials.password}', 'info');
                 
                 // Open Allure report
                 test.openReport().catch(() => {
@@ -162,12 +162,12 @@ if (require.main === module) {
             } else {
                 log('Test completed with errors', 'error');
                 if (result.error) {
-                    log(`Error: ${result.error}`, 'error');
+                    log('Error: ${result.error}', 'error');
                 }
             }
         })
         .catch(error => {
-            log(`Fatal error: ${error.message}`, 'error');
+            log('Fatal error: ${error.message}', 'error');
             process.exit(1);
         });
 }
