@@ -24,7 +24,7 @@ class DatabaseService {
             log('Database connection established', 'success');
             return true;
         } catch (error) {
-            log(`Database connection failed: ${error.message}`, 'error');
+            log('Database connection failed: ${error.message}', 'error');
             return false;
         }
     }
@@ -89,7 +89,7 @@ class DatabaseService {
                     email = emailRows[0].email;
                 }
             } catch (error) {
-                log(`Could not fetch email: ${error.message}`, 'warn');
+                log('Could not fetch email: ${error.message}', 'warn');
             }
       
             return {
@@ -102,7 +102,7 @@ class DatabaseService {
                 baseEmail: email ? email.split('@')[0] : null
             };
         } catch (error) {
-            log(`Error fetching registration data: ${error.message}`, 'error');
+            log('Error fetching registration data: ${error.message}', 'error');
             // Return fallback data
             return {
                 firstName: 'Alice',
@@ -112,6 +112,40 @@ class DatabaseService {
                 gender: 'Female',
                 is18OrOlder: true,
                 baseEmail: null
+            };
+        }
+    }
+
+    /**
+     * Fetch random user data from database
+     * @returns {Promise<Object>} User data object
+     */
+    async fetchRandomUser() {
+        try {
+            if (!this.connection) {
+                return null;
+            }
+            
+            const query = "SELECT * FROM users ORDER BY RAND() LIMIT 1";
+            
+            const rows = await this.execute(query);
+            
+            if (rows && rows.length > 0) {
+                log('Random user retrieved from database', 'success');
+                return rows[0];
+            } else {
+                log('No users found in database', 'warn');
+                return null;
+            }
+        } catch (error) {
+            log('Failed to fetch random user: ${error.message}', 'error');
+            
+            // Return fallback user data
+            return {
+                email: 'test@example.com',
+                password: 'Test@123',
+                firstName: 'Test',
+                lastName: 'User'
             };
         }
     }
