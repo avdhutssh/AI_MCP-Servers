@@ -7,9 +7,17 @@
     "test": "npx playwright test",
     "test:ui": "node tests/ui/RegistrationTest.js",
     "test:api": "node tests/api/LoginApiTest.js",
+    "test:api:catalog": "node tests/api/ProductCatalogApiTest.js",
+    "test:api:order": "node tests/api/OrderApiTest.js",
     "report": "npx allure open allure-report",
     "clean": "rimraf allure-results",
-    "test:with-report": "npm run clean && npm run test && npm run report"
+    "test:with-report": "npm run clean && npm run test && npm run report",
+    "test:all": "node runTests.js --all",
+    "test:smoke": "node runTests.js --tag smoke",
+    "test:critical": "node runTests.js --tag critical",
+    "test:regression": "node runTests.js --tag regression",
+    "test:api:all": "node runTests.js --tag api",
+    "test:specific": "node runTests.js --test"
   },
   "keywords": [
     "playwright",
@@ -24,7 +32,9 @@
     "allure-commandline": "^2.23.0",
     "crypto": "^1.0.1",
     "exceljs": "^4.3.0",
-    "mysql2": "^3.3.5"
+    "glob": "^11.0.2",
+    "mysql2": "^3.3.5",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
     "rimraf": "^5.0.1"

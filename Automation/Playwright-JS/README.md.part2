@@ -1,0 +1,136 @@
+## Features
+
+- **Page Object Model (POM)**: Separates page elements and actions from test logic
+- **Test Organization**:
+  - Test tagging system (smoke, critical, regression, api)
+  - Test dependency management
+  - Single responsibility test cases
+- **Data-Driven Testing**: 
+  - Support for Excel and JSON data sources
+  - Fallback data when external data is unavailable
+- **Comprehensive API Testing**:
+  - Detailed API request/response logging
+  - API-specific test base class
+  - Complete API client implementation
+- **Reporting**:
+  - Allure reporting with screenshots
+  - API request/response details in reports
+  - Test steps and attachments
+- **Integration**:
+  - Database connectivity
+  - Excel data operations
+  - API client
+- **Utilities**:
+  - Robust logging system
+  - Common utilities
+  - Configuration management
+
+## Prerequisites
+
+- Node.js 14 or later
+- Playwright
+- Allure command-line tool (for reports)
+
+## Installation
+
+'''bash
+# Clone the repository
+git clone <repository-url>
+
+# Navigate to the project directory
+cd Playwright-JS
+
+# Install dependencies
+npm install
+'''
+
+## Running Tests
+
+The framework provides multiple ways to run tests:
+
+'''bash
+# Run all tests
+npm run test:all
+
+# Run smoke tests
+npm run test:smoke
+
+# Run critical tests
+npm run test:critical
+
+# Run regression tests
+npm run test:regression
+
+# Run API tests
+npm run test:api:all
+
+# Run specific API tests
+npm run test:api:catalog
+npm run test:api:order
+
+# Run a specific test
+npm run test:specific -- --test registration
+
+# Generate and open Allure report
+npm run report
+'''
+
+## Test Configuration
+
+Tests are configured in 'config/TestConfig.js' with tags and dependencies. The test runner automatically resolves dependencies and executes tests in the correct order.
+
+Example test configuration:
+
+'''javascript
+"registration": {
+    path: "tests/ui/RegistrationTest.js",
+    description: "Register new user account",
+    tags: ["smoke", "critical", "regression"],
+    dependencies: [],
+    dataSources: ["users"]
+}
+'''
+
+## Data-Driven Testing
+
+The framework supports data-driven testing with Excel and JSON data sources:
+
+'''javascript
+// Example data source configuration
+"users": {
+    type: "excel",
+    path: "../data/excel/users.xlsx",
+    sheet: "Users",
+    fallback: [
+        {
+            email: "test1@example.com",
+            password: "Test@123",
+            firstName: "John",
+            lastName: "Doe"
+        }
+    ]
+}
+'''
+
+## Adding New Tests
+
+1. Create a test file in the appropriate directory (ui/ or api/)
+2. Extend the appropriate base class (BaseTest or ApiBaseTest)
+3. Add the test to the TestConfig.js file with appropriate tags and dependencies
+4. Create page objects if needed
+
+## Reporting
+
+The framework uses Allure for reporting. After running tests, generate and open the report:
+
+'''bash
+npm run report
+'''
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a new Pull Request
