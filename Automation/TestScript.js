@@ -32,7 +32,7 @@ const utils = {
   generateUniqueEmail: (firstName, lastName) => {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '');
     const randomStr = crypto.randomBytes(3).toString('hex');
-    return `${firstName.toLowerCase()}.${lastName.toLowerCase()}.${timestamp}.${randomStr}@example.com`;
+    return '${firstName.toLowerCase()}.${lastName.toLowerCase()}.${timestamp}.${randomStr}@example.com';
   },
   
   // Create output directory if it doesn't exist
@@ -72,7 +72,7 @@ const utils = {
     
     // Save the workbook
     await workbook.xlsx.writeFile(filePath);
-    console.log(`✅ Data saved to ${filePath}`);
+    console.log('✅ Data saved to ${filePath}');
     return filePath;
   },
   
@@ -84,7 +84,7 @@ const utils = {
     const colorCode = type === 'error' ? '\x1b[31m' : 
                       type === 'success' ? '\x1b[32m' : 
                       type === 'warn' ? '\x1b[33m' : '\x1b[0m';
-    console.log(`${colorCode}[${timestamp}] ${message}\x1b[0m`);
+    console.log('${colorCode}[${timestamp}] ${message}\x1b[0m');
     
     // Store log for report
     utils.logs.push({
@@ -135,8 +135,8 @@ const utils = {
         status: log.type === 'error' ? 'failed' : 
                 log.type === 'warn' ? 'broken' : 'passed',
         stage: 'finished',
-        start: new Date(`1/1/2023 ${log.timestamp}`).getTime(),
-        stop: new Date(`1/1/2023 ${log.timestamp}`).getTime() + 1 // Add 1ms to ensure valid range
+        start: new Date('1/1/2023 ${log.timestamp}').getTime(),
+        stop: new Date('1/1/2023 ${log.timestamp}').getTime() + 1 // Add 1ms to ensure valid range
       }));
       
       const steps = testData.steps.length > 0 ? testData.steps : logSteps;
@@ -161,7 +161,7 @@ const utils = {
         attachments: testData.attachments || [],
         parameters: [],
         // CHANGED: Format from object to string
-        description: `# Avdhut Build - Registration Test
+description: `# Avdhut Build - Registration Test
 This test verifies that a new user can be registered and logged in via the API.
 
 ## Test Steps:
@@ -188,7 +188,7 @@ This test verifies that a new user can be registered and logged in via the API.
       
       // Save Allure result JSON
       fs.writeFileSync(
-        path.join(config.allureResultsDir, `${uuid}-result.json`),
+        path.join(config.allureResultsDir, '${uuid}-result.json'),
         JSON.stringify(result, null, 2) // CHANGED: Added formatting for better inspection
       );
       
@@ -227,7 +227,7 @@ This test verifies that a new user can be registered and logged in via the API.
       };
       
       const envProperties = Object.entries(envData)
-        .map(([key, value]) => `${key}=${value}`)
+        .map(([key, value]) => '${key}=${value}')
         .join('\n');
       
       fs.writeFileSync(
@@ -247,7 +247,7 @@ This test verifies that a new user can be registered and logged in via the API.
         JSON.stringify(executor, null, 2) // CHANGED: Added formatting
       );
       
-      utils.log(`📊 Allure results written to: ${config.allureResultsDir}`, 'success');
+      utils.log('📊 Allure results written to: ${config.allureResultsDir}', 'success');
     },
     
     // Helper to convert a screenshot to Allure attachment
@@ -285,9 +285,9 @@ This test verifies that a new user can be registered and logged in via the API.
         
         generation.on('exit', code => {
           if (code === 0) {
-            utils.log(`📊 Allure report generated at: ${config.allureReportDir}`, 'success');
+            utils.log('📊 Allure report generated at: ${config.allureReportDir}', 'success');
           } else {
-            utils.log(`❌ Allure report generation failed with code: ${code}`, 'error');
+            utils.log('❌ Allure report generation failed with code: ${code}', 'error');
           }
           resolve(code === 0);
         });
@@ -322,7 +322,7 @@ class DatabaseService {
       utils.log('📊 Database connection established', 'success');
       return true;
     } catch (error) {
-      utils.log(`📊 Database connection failed: ${error.message}`, 'error');
+      utils.log('📊 Database connection failed: ${error.message}', 'error');
       return false;
     }
   }
@@ -365,7 +365,7 @@ class DatabaseService {
           email = emailRows[0].email;
         }
       } catch (error) {
-        utils.log(`Could not fetch email: ${error.message}`, 'warn');
+        utils.log('Could not fetch email: ${error.message}', 'warn');
       }
       
       return {
@@ -378,7 +378,7 @@ class DatabaseService {
         baseEmail: email ? email.split('@')[0] : null
       };
     } catch (error) {
-      utils.log(`📊 Error fetching registration data: ${error.message}`, 'error');
+      utils.log('📊 Error fetching registration data: ${error.message}', 'error');
       // Return fallback data
       return {
         firstName: 'Alice',
@@ -472,7 +472,7 @@ class RegistrationManager { // Name not changed to keep backward compatibility
       utils.log('🌐 Registration page loaded', 'success');
       utils.allure.endStep(step);
     } catch (error) {
-      utils.log(`❌ Navigation failed: ${error.message}`, 'error');
+      utils.log('❌ Navigation failed: ${error.message}', 'error');
       utils.allure.endStep(step, 'failed');
       throw error;
     }
@@ -522,7 +522,7 @@ class RegistrationManager { // Name not changed to keep backward compatibility
       utils.log('📝 Registration form filled', 'success');
       utils.allure.endStep(step);
     } catch (error) {
-      utils.log(`❌ Form filling failed: ${error.message}`, 'error');
+      utils.log('❌ Form filling failed: ${error.message}', 'error');
       utils.allure.endStep(step, 'failed');
       throw error;
     }
@@ -559,12 +559,12 @@ class RegistrationManager { // Name not changed to keep backward compatibility
         utils.allure.endStep(step);
         return true;
       } else {
-        utils.log(`❌ Registration failed: ${result.message}`, 'error');
+        utils.log('❌ Registration failed: ${result.message}', 'error');
         utils.allure.endStep(step, 'failed');
         return false;
       }
     } catch (error) {
-      utils.log(`⚠️ Error during registration: ${error.message}`, 'error');
+      utils.log('⚠️ Error during registration: ${error.message}', 'error');
       utils.allure.endStep(step, 'broken');
       return false;
     } finally {
@@ -615,7 +615,7 @@ class RegistrationManager { // Name not changed to keep backward compatibility
         };
       }
     } catch (error) {
-      utils.log(`❌ API Login error: ${error.message}`, 'error');
+      utils.log('❌ API Login error: ${error.message}', 'error');
       utils.allure.endStep(step, 'broken');
       return {
         success: false,
@@ -632,11 +632,11 @@ class RegistrationManager { // Name not changed to keep backward compatibility
     
     try {
       const filePath = await utils.writeToExcel(this.credentials);
-      utils.log(`💾 Credentials saved to: ${filePath}`, 'success');
+      utils.log('💾 Credentials saved to: ${filePath}', 'success');
       utils.allure.endStep(step);
       return true;
     } catch (error) {
-      utils.log(`❌ Error saving credentials: ${error.message}`, 'error');
+      utils.log('❌ Error saving credentials: ${error.message}', 'error');
       utils.allure.endStep(step, 'failed');
       return false;
     } finally {
@@ -691,7 +691,7 @@ class RegistrationManager { // Name not changed to keep backward compatibility
         excelSaved
       };
     } catch (error) {
-      utils.log(`❌ Error in completion process: ${error.message}`, 'error');
+      utils.log('❌ Error in completion process: ${error.message}', 'error');
       
       this.testData.success = false;
       this.testData.error = error.message;
@@ -724,8 +724,8 @@ async function runAutomation() {
   
   if (result.registrationSuccess && result.loginSuccess) {
     utils.log('✅ Automation completed successfully!', 'success');
-    utils.log(`Email: ${result.credentials.email}`, 'info');
-    utils.log(`Password: ${result.credentials.password}`, 'info');
+    utils.log('Email: ${result.credentials.email}', 'info');
+    utils.log('Password: ${result.credentials.password}', 'info');
     
     // Open Allure report
     await utils.allure.openReport().catch(() => {
@@ -739,7 +739,7 @@ async function runAutomation() {
 // Execute the automation
 if (require.main === module) {
   runAutomation().catch(error => {
-    utils.log(`❌ Fatal error: ${error.message}`, 'error');
+    utils.log('❌ Fatal error: ${error.message}', 'error');
     process.exit(1);
   });
 }
