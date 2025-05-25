@@ -14,10 +14,14 @@ class ApiBaseTest {
      * Initialize the API test
      * @param {Object} options - Test options
      * @param {boolean} options.cleanAllure - Whether to clean Allure results
+     * @param {Object} testData - Test data passed to the test
      */
-    constructor(options = {}) {
+    constructor(options = {}, testData = {}) {
         // Initialize API client in browserless mode (without page object)
         this.apiClient = new ApiClient(null);
+        
+        // Store test data
+        this.testData = testData;
         
         // Setup test data for Allure reporting
         this.testName = options.testName || 'API Automated Test';
@@ -34,9 +38,8 @@ class ApiBaseTest {
     
     /**
      * Set up the test environment
-     */
-    async setup() {
-        log('Setting up API test: ${this.testName}', 'info');
+     */    async setup() {
+        log(`Setting up API test: ${this.testName}`, 'info');
     }
     
     /**

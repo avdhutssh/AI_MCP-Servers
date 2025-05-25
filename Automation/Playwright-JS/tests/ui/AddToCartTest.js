@@ -13,14 +13,17 @@ const config = require('../../config/config');
  * Add To Cart Test
  */
 class AddToCartTest extends BaseTest {
-    constructor() {
+    /**
+     * @param {Object} testData - Test data passed from test runner
+     */
+    constructor(testData = {}) {
         super({
             testName: 'Add To Cart Test',
             testDescription: 'This test verifies that products can be added to the shopping cart successfully.',
             tags: ['smoke', 'critical', 'regression'],
             cleanAllure: false,
             database: false
-        });
+        }, testData);
         
         this.credentials = null;
     }
@@ -38,29 +41,37 @@ class AddToCartTest extends BaseTest {
             const loginPage = new LoginPage(this.page);
             const dashboardPage = new DashboardPage(this.page);
             const cartPage = new CartPage(this.page);
+              // Step 1: Get credentials from test data or Excel file
+            log('Getting login credentials', 'info');
             
-            // Step 1: Read credentials from Excel file
-            log('Reading credentials from Excel file', 'info');
-            
-            try {
-                const excelData = await Utils.readFromExcel(
-                    `${config.outputDir}/${config.excelFile}`
-                );
-                
-                if (excelData.length === 0) {
-                    throw new Error('No credentials found in Excel file');
-                }
-                
-                // Use the most recent credentials
-                this.credentials = excelData[excelData.length - 1];
+            // First check if credentials are in test data
+            if (this.testData && this.testData.userCredentials) {
+                log('Using credentials from test data', 'info');
+                this.credentials = this.testData.userCredentials;
                 log(`Using credentials for: ${this.credentials.email}`, 'info');
-            } catch (error) {
-                log(`Error reading Excel data: ${error.message}. Test cannot continue without valid credentials.`, 'error');
-                await this.teardown(false, error.message);
-                return {
-                    success: false,
-                    error: `No valid credentials found: ${error.message}`
-                };
+            } else {
+                // If not, try to read from Excel file
+                log('Reading credentials from Excel file', 'info');
+                try {
+                    const excelData = await Utils.readFromExcel(
+                        `${config.outputDir}/${config.excelFile}`
+                    );
+                    
+                    if (excelData.length === 0) {
+                        throw new Error('No credentials found in Excel file');
+                    }
+                    
+                    // Use the most recent credentials
+                    this.credentials = excelData[excelData.length - 1];
+                    log(`Using credentials for: ${this.credentials.email}`, 'info');
+                } catch (error) {
+                    log(`Error reading Excel data: ${error.message}. Test cannot continue without valid credentials.`, 'error');
+                    await this.teardown(false, error.message);
+                    return {
+                        success: false,
+                        error: `No valid credentials found: ${error.message}`
+                    };
+                }
             }
             
             // Step 2: Navigate to login page and login

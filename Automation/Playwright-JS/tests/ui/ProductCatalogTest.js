@@ -13,13 +13,16 @@ const config = require('../../config/config');
  * Product Catalog Test
  */
 class ProductCatalogTest extends BaseTest {
-    constructor() {
+    /**
+     * @param {Object} testData - Test data passed from test runner
+     */
+    constructor(testData = {}) {
         super({
             testName: 'Product Catalog Test',
             testDescription: 'This test verifies that the product catalog loads correctly and displays expected products.',
             cleanAllure: false,
             database: false
-        });
+        }, testData);
         
         this.credentials = null;
     }
@@ -38,35 +41,45 @@ class ProductCatalogTest extends BaseTest {
             const dashboardPage = new DashboardPage(this.page);
             const apiClient = new ApiClient(this.page);
             
-            // Step 1: Read credentials from Excel file
-            log('Reading credentials from Excel file', 'info');
+            // Step 1: Get credentials from test data or Excel file
+            log('Getting login credentials', 'info');
             
-            try {
-                const excelData = await Utils.readFromExcel(
-                    '${config.outputDir}/${config.excelFile}'
-                );
+            // First check if credentials are in test data
+            if (this.testData && this.testData.userCredentials) {
+                log('Using credentials from test data', 'info');
+                this.credentials = this.testData.userCredentials;
+                log(`Using credentials for: ${this.credentials.email}`, 'info');
+            } else {
+                // If not, try to read from Excel file
+                log('Reading credentials from Excel file', 'info');
                 
-                if (excelData.length === 0) {
-                    throw new Error('No credentials found in Excel file');
+                try {
+                    const excelData = await Utils.readFromExcel(
+                        `${config.outputDir}/${config.excelFile}`
+                    );
+                    
+                    if (excelData.length === 0) {
+                        throw new Error('No credentials found in Excel file');
+                    }
+                    
+                    // Use the most recent credentials
+                    this.credentials = excelData[excelData.length - 1];
+                    log(`Using credentials for: ${this.credentials.email}`, 'info');
+                } catch (error) {
+                    log(`Error reading Excel data: ${error.message}. Test cannot continue without valid credentials.`, 'error');
+                    await this.teardown(false, error.message);
+                    return {
+                        success: false,
+                        error: `No valid credentials found: ${error.message}`
+                    };
                 }
-                
-                // Use the most recent credentials
-                this.credentials = excelData[excelData.length - 1];
-                log('Using credentials for: ${this.credentials.email}', 'info');
-            } catch (error) {
-                log('Error reading Excel data: ${error.message}. Test cannot continue without valid credentials.', 'error');
-                await this.teardown(false, error.message);
-                return {
-                    success: false,
-                    error: 'No valid credentials found: ${error.message}'
-                };
             }
             
             // Step 2: Navigate to login page and login
             log('Navigating to login page', 'info');
             await loginPage.navigate(config.baseUrl);
             
-            log('Logging in with email: ${this.credentials.email}', 'info');
+            log(`Logging in with email: ${this.credentials.email}`, 'info');
             await loginPage.login(this.credentials.email, this.credentials.password);
             await this.takeScreenshot('After Login');
             
@@ -98,11 +111,11 @@ class ProductCatalogTest extends BaseTest {
                 };
             }
             
-            log('Found ${products.length} products on dashboard', 'success');
+            log(`Found ${products.length} products on dashboard`, 'success');
             
             // Log first few products for verification
             products.slice(0, 3).forEach((product, index) => {
-                log('Product ${index + 1}: ${product.title} - ${product.price}', 'info');
+                log(`Product ${index + 1}: ${product.title} - ${product.price}`, 'info');
             });
             
             // Step 5: Compare with API products (optional verification)
@@ -113,7 +126,7 @@ class ProductCatalogTest extends BaseTest {
                 const apiProductResult = await apiClient.getProductList(loginResult.token);
                 
                 if (apiProductResult.success) {
-                    log('API returned ${apiProductResult.products.length} products', 'info');
+                    log(`API returned ${apiProductResult.products.length} products`, 'info');
                     
                     // Verify count roughly matches (may be pagination differences)
                     const countDiff = Math.abs(products.length - apiProductResult.products.length);
@@ -132,7 +145,7 @@ class ProductCatalogTest extends BaseTest {
                 productCount: products.length
             };
         } catch (error) {
-            log('Test execution error: ${error.message}', 'error');
+            log(`Test execution error: ${error.message}`, 'error');
             await this.teardown(false, error.message);
             
             return {
@@ -151,7 +164,7 @@ if (require.main === module) {
         .then(result => {
             if (result.success) {
                 log('Test completed successfully!', 'success');
-                log('Found ${result.productCount} products', 'info');
+                log(`Found ${result.productCount} products`, 'info');
                 
                 // Open Allure report
                 test.openReport().catch(() => {
@@ -160,12 +173,12 @@ if (require.main === module) {
             } else {
                 log('Test completed with errors', 'error');
                 if (result.error) {
-                    log('Error: ${result.error}', 'error');
+                    log(`Error: ${result.error}`, 'error');
                 }
             }
         })
         .catch(error => {
-            log('Fatal error: ${error.message}', 'error');
+            log(`Fatal error: ${error.message}`, 'error');
             process.exit(1);
         });
 }

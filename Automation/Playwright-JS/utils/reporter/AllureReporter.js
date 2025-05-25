@@ -275,7 +275,7 @@ This test verifies application functionality.
             
             generation.on('exit', code => {
                 if (code === 0) {
-                    log('Allure report generated at: ${config.allureReportDir}', 'success');
+                    log(`Allure report generated at: ${config.allureReportDir}`, 'success');
                 } else {
                     log('Allure report generation failed with code: ${code}', 'error');
                 }

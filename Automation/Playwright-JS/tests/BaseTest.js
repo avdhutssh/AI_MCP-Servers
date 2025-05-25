@@ -10,18 +10,21 @@ const config = require('../config/config');
 /**
  * Base test class with common setup and teardown methods
  */
-class BaseTest {
-    /**
+class BaseTest {    /**
      * Initialize the test
      * @param {Object} options - Test options
      * @param {boolean} options.database - Whether to connect to database
      * @param {boolean} options.cleanAllure - Whether to clean Allure results
+     * @param {Object} testData - Test data passed to the test
      */
-    constructor(options = {}) {
+    constructor(options = {}, testData = {}) {
         this.browser = null;
         this.page = null;
         this.context = null;
         this.db = options.database ? new DatabaseService(config.database) : null;
+        
+        // Store test data
+        this.testData = testData;
         
         // Setup test data for Allure reporting
         this.testName = options.testName || 'Automated Test';
@@ -39,9 +42,8 @@ class BaseTest {
     /**
      * Set up the test environment
      * @returns {Promise<void>}
-     */
-    async setup() {
-        log('Setting up test: ${this.testName}', 'info');
+     */    async setup() {
+        log(`Setting up test: ${this.testName}`, 'info');
         
         // Launch browser
         this.browser = await chromium.launch({
@@ -117,7 +119,7 @@ class BaseTest {
         
         const screenshot = await this.page.screenshot();
         allureReporter.createScreenshotAttachment(name, screenshot);
-        log('Screenshot taken: ${name}', 'info');
+        log(`Screenshot taken: ${name}`, 'info');
     }
     
     /**

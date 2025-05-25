@@ -7,7 +7,7 @@ const allureReporter = require('./utils/reporter/AllureReporter');
 const path = require('path');
 const fs = require('fs');
 const readExcel = require('./utils/helpers/Utils').readFromExcel;
-const { prepareDefaultTestData } = require('./utils/helpers/TestDataProcessor');
+const config = require('./config/config');
 
 /**
  * Load test data from sources
@@ -15,14 +15,13 @@ const { prepareDefaultTestData } = require('./utils/helpers/TestDataProcessor');
  * @returns {Promise<Object>} Test data
  */
 async function loadTestData(dataSources) {
-    // Start with default test data (credentials, etc.)
-    const testData = await prepareDefaultTestData();
-    
     if (!dataSources || dataSources.length === 0) {
-        return testData;
+        return {};
     }
     
-    for (const sourceName of dataSources) {        
+    const testData = {};
+    
+    for (const sourceName of dataSources) {
         const source = testConfig.dataSources[sourceName];
         if (!source) {
             log(`Data source not found: ${sourceName}`, 'warn');
@@ -34,25 +33,30 @@ async function loadTestData(dataSources) {
                 // Load Excel data
                 const excelPath = path.resolve(__dirname, source.path);
                 if (fs.existsSync(excelPath)) {
-                    const excelData = await readExcel(excelPath, source.sheet);                    testData[sourceName] = excelData;
+                    const excelData = await readExcel(excelPath, source.sheet);
+                    testData[sourceName] = excelData;
                 } else {
                     log(`Excel file not found: ${excelPath}, using fallback data`, 'warn');
                     testData[sourceName] = source.fallback;
-                }} else if (source.type === 'json') {
+                }
+            } else if (source.type === 'json') {
                 // Load JSON data
                 const jsonPath = path.resolve(__dirname, source.path);
                 if (fs.existsSync(jsonPath)) {
                     try {
-                        const fileContent = fs.readFileSync(jsonPath, 'utf8');                        const jsonData = JSON.parse(fileContent);
+                        const fileContent = fs.readFileSync(jsonPath, 'utf8');
+                        const jsonData = JSON.parse(fileContent);
                         testData[sourceName] = jsonData;
                     } catch (error) {
                         log(`Error loading data for ${sourceName}: ${error.message}`, 'error');
                         testData[sourceName] = source.fallback;
-                    }                } else {
+                    }
+                } else {
                     log(`JSON file not found: ${jsonPath}, using fallback data`, 'warn');
                     testData[sourceName] = source.fallback;
                 }
-            }        } catch (error) {
+            }
+        } catch (error) {
             log(`Error loading data for ${sourceName}: ${error.message}`, 'error');
             testData[sourceName] = source.fallback;
         }
@@ -66,11 +70,13 @@ async function loadTestData(dataSources) {
  * @param {string[]} tests - List of test names to run
  * @returns {Promise<void>}
  */
-async function runTests(tests) {    log(`Starting test execution for ${tests.length} tests`, 'info');
+async function runTests(tests) {
+    log(`Starting test execution for ${tests.length} tests`, 'info');
     
     // Clean Allure results directory
     allureReporter.cleanResultsDirectory();
-      // Resolve dependencies
+    
+    // Resolve dependencies
     const testsWithDependencies = testConfig.resolveDependencies(tests);
     log(`Tests to run with dependencies: ${testsWithDependencies.join(', ')}`, 'info');
     
@@ -78,7 +84,8 @@ async function runTests(tests) {    log(`Starting test execution for ${tests.len
     let failCount = 0;
     
     const startTime = Date.now();
-      // Run each test
+    
+    // Run each test
     for (const testName of testsWithDependencies) {
         log(`Executing test: ${testName}`, 'info');
         
@@ -88,24 +95,24 @@ async function runTests(tests) {    log(`Starting test execution for ${tests.len
             failCount++;
             continue;
         }
-          try {
+        
+        try {
             // Load test data
-            const testData = await loadTestData(testInfo.dataSources || []);
-            
-            // Log test data for debugging
-            log(`Loaded test data with keys: ${Object.keys(testData).join(', ')}`, 'info');
-            if (testData.userCredentials) {
-                log(`Test data includes credentials for: ${testData.userCredentials.email}`, 'info');
-            }
+            const testData = await loadTestData(testInfo.dataSources);
             
             // Dynamically import test module
             const testPath = `./${testInfo.path}`;
             const TestClass = require(testPath);
             
-            // Create test instance with test data
-            const test = new TestClass(testData);
+            // Create test instance (don't pass testData in constructor)
+            const test = new TestClass();
+            
+            // Attach test data to the test instance
+            test.testData = testData;
+            
             const result = await test.run();
-              if (result.success) {
+            
+            if (result.success) {
                 log(`Test ${testName} completed successfully`, 'success');
                 successCount++;
             } else {
@@ -120,7 +127,8 @@ async function runTests(tests) {    log(`Starting test execution for ${tests.len
     
     const endTime = Date.now();
     const executionTime = (endTime - startTime) / 1000;
-      // Print summary
+    
+    // Print summary
     log('\nTest Execution Summary:', 'info');
     log(`Total tests: ${testsWithDependencies.length}`, 'info');
     log(`Successful: ${successCount}`, 'success');
@@ -145,7 +153,8 @@ async function runTests(tests) {    log(`Starting test execution for ${tests.len
  * @returns {Promise<void>}
  */
 async function runTestsByTag(tag) {
-    const tests = testConfig.getTestsByTag(tag);    const testNames = Object.keys(tests);
+    const tests = testConfig.getTestsByTag(tag);
+    const testNames = Object.keys(tests);
     
     if (testNames.length === 0) {
         log(`No tests found with tag: ${tag}`, 'warn');
@@ -183,7 +192,7 @@ Usage:
                 });
             })
             .catch(error => {
-                log('Error running tests: ${error.message}', 'error');
+                log(`Error running tests: ${error.message}`, 'error');
                 process.exit(1);
             });
         return;
@@ -202,7 +211,7 @@ Usage:
                 });
             })
             .catch(error => {
-                log('Error running tests: ${error.message}', 'error');
+                log(`Error running tests: ${error.message}`, 'error');
                 process.exit(1);
             });
     }

@@ -11,12 +11,15 @@ const config = require('../../config/config');
  * API Login Test
  */
 class LoginApiTest extends BaseTest {
-    constructor() {
+    /**
+     * @param {Object} testData - Test data passed from test runner
+     */
+    constructor(testData = {}) {
         super({
             testName: 'API Login Test',
             testDescription: 'This test verifies that a user can log in via the API.',
             cleanAllure: true
-        });
+        }, testData);
     }
     
     /**
@@ -30,31 +33,39 @@ class LoginApiTest extends BaseTest {
             
             // Create API client
             const apiClient = new ApiClient(this.page);
-            
-            // Step 1: Read credentials from Excel file
-            log('Reading credentials from Excel file', 'info');
+              // Step 1: Read credentials from Excel file or use test data
+            log('Getting login credentials', 'info');
             let credentials;
             
-            try {
-                const excelData = await Utils.readFromExcel(
-                    `${config.outputDir}/${config.excelFile}`
-                );
-                
-                if (excelData.length === 0) {
-                    throw new Error('No credentials found in Excel file');
-                }
-                
-                // Use the most recent credentials
-                credentials = excelData[excelData.length - 1];
+            // First, check if we have credentials in test data
+            if (this.testData && this.testData.userCredentials) {
+                log('Using credentials from test data', 'info');
+                credentials = this.testData.userCredentials;
                 log(`Using credentials for: ${credentials.email}`, 'info');
-            } catch (error) {
-                log(`Error reading Excel data: ${error.message}. Using fallback credentials.`, 'warn');
-                
-                // Use fallback credentials
-                credentials = {
-                    email: 'alice.brown.20230517T1234.abc@example.com',
-                    password: 'SecurePass123'
-                };
+            } else {
+                // If not, try to read from Excel file
+                log('Reading credentials from Excel file', 'info');
+                try {
+                    const excelData = await Utils.readFromExcel(
+                        `${config.outputDir}/${config.excelFile}`
+                    );
+                    
+                    if (excelData.length === 0) {
+                        throw new Error('No credentials found in Excel file');
+                    }
+                    
+                    // Use the most recent credentials
+                    credentials = excelData[excelData.length - 1];
+                    log(`Using credentials for: ${credentials.email}`, 'info');
+                } catch (error) {
+                    log(`Error reading Excel data: ${error.message}. Using fallback credentials.`, 'warn');
+                    
+                    // Use fallback credentials
+                    credentials = {
+                        email: config.testData.userEmail || 'alice.brown.20230517T1234.abc@example.com',
+                        password: config.testData.userPassword || 'SecurePass123'
+                    };
+                }
             }
             
             // Step 2: Perform API login

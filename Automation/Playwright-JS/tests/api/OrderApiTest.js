@@ -9,14 +9,19 @@ const config = require('../../config/config');
 /**
  * Order API Test
  */
-class OrderApiTest extends ApiBaseTest {    constructor() {
+class OrderApiTest extends ApiBaseTest {
+    /**
+     * @param {Object} testData - Test data passed from test runner
+     */
+    constructor(testData = {}) {
         super({
             testName: 'Order API Test',
             testDescription: 'This test verifies order API operations including creating and retrieving orders.',
             cleanAllure: true
-        });
+        }, testData);
         
-        this.credentials = {
+        // Use credentials from test data if available, otherwise use defaults
+        this.credentials = testData && testData.userCredentials ? testData.userCredentials : {
             email: config.testData.userEmail || 'anshika@gmail.com',
             password: config.testData.userPassword || 'Iamking@000'
         };
@@ -38,7 +43,7 @@ class OrderApiTest extends ApiBaseTest {    constructor() {
             const loginResult = await this.apiClient.login(this.credentials.email, this.credentials.password);
             
             if (!loginResult.success) {
-                log('Login failed: ${loginResult.message}', 'error');
+                log(`Login failed: ${loginResult.message}`, 'error');
                 await this.teardown(false, loginResult.message);
                 return {
                     success: false,
