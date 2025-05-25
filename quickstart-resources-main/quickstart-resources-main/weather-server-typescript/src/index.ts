@@ -15,7 +15,7 @@ async function makeNWSRequest<T>(url: string): Promise<T | null> {
   try {
     const response = await fetch(url, { headers });
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error('HTTP error! status: ${response.status}');
     }
     return (await response.json()) as T;
   } catch (error) {
@@ -38,11 +38,11 @@ interface AlertFeature {
 function formatAlert(feature: AlertFeature): string {
   const props = feature.properties;
   return [
-    `Event: ${props.event || "Unknown"}`,
-    `Area: ${props.areaDesc || "Unknown"}`,
-    `Severity: ${props.severity || "Unknown"}`,
-    `Status: ${props.status || "Unknown"}`,
-    `Headline: ${props.headline || "No headline"}`,
+    'Event: ${props.event || "Unknown"}',
+    'Area: ${props.areaDesc || "Unknown"}',
+    'Severity: ${props.severity || "Unknown"}',
+    'Status: ${props.status || "Unknown"}',
+    'Headline: ${props.headline || "No headline"}',
     "---",
   ].join("\n");
 }
@@ -87,7 +87,7 @@ server.tool(
   },
   async ({ state }) => {
     const stateCode = state.toUpperCase();
-    const alertsUrl = `${NWS_API_BASE}/alerts?area=${stateCode}`;
+    const alertsUrl = '${NWS_API_BASE}/alerts?area=${stateCode}';
     const alertsData = await makeNWSRequest<AlertsResponse>(alertsUrl);
 
     if (!alertsData) {
@@ -107,14 +107,14 @@ server.tool(
         content: [
           {
             type: "text",
-            text: `No active alerts for ${stateCode}`,
+            text: 'No active alerts for ${stateCode}',
           },
         ],
       };
     }
 
     const formattedAlerts = features.map(formatAlert);
-    const alertsText = `Active alerts for ${stateCode}:\n\n${formattedAlerts.join("\n")}`;
+    const alertsText = 'Active alerts for ${stateCode}:\n\n${formattedAlerts.join("\n")}';
 
     return {
       content: [
@@ -140,7 +140,7 @@ server.tool(
   },
   async ({ latitude, longitude }) => {
     // Get grid point data
-    const pointsUrl = `${NWS_API_BASE}/points/${latitude.toFixed(4)},${longitude.toFixed(4)}`;
+    const pointsUrl = '${NWS_API_BASE}/points/${latitude.toFixed(4)},${longitude.toFixed(4)}';
     const pointsData = await makeNWSRequest<PointsResponse>(pointsUrl);
 
     if (!pointsData) {
@@ -148,7 +148,7 @@ server.tool(
         content: [
           {
             type: "text",
-            text: `Failed to retrieve grid point data for coordinates: ${latitude}, ${longitude}. This location may not be supported by the NWS API (only US locations are supported).`,
+            text: 'Failed to retrieve grid point data for coordinates: ${latitude}, ${longitude}. This location may not be supported by the NWS API (only US locations are supported).',
           },
         ],
       };
@@ -194,15 +194,15 @@ server.tool(
     // Format forecast periods
     const formattedForecast = periods.map((period: ForecastPeriod) =>
       [
-        `${period.name || "Unknown"}:`,
-        `Temperature: ${period.temperature || "Unknown"}°${period.temperatureUnit || "F"}`,
-        `Wind: ${period.windSpeed || "Unknown"} ${period.windDirection || ""}`,
-        `${period.shortForecast || "No forecast available"}`,
+        '${period.name || "Unknown"}:',
+        'Temperature: ${period.temperature || "Unknown"}°${period.temperatureUnit || "F"}',
+        'Wind: ${period.windSpeed || "Unknown"} ${period.windDirection || ""}',
+        '${period.shortForecast || "No forecast available"}',
         "---",
       ].join("\n"),
     );
 
-    const forecastText = `Forecast for ${latitude}, ${longitude}:\n\n${formattedForecast.join("\n")}`;
+    const forecastText = 'Forecast for ${latitude}, ${longitude}:\n\n${formattedForecast.join("\n")}';
 
     return {
       content: [

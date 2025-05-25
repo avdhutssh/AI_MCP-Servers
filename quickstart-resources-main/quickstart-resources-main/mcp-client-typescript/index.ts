@@ -116,7 +116,7 @@ class MCPClient {
         });
         toolResults.push(result);
         finalText.push(
-          `[Calling tool ${toolName} with args ${JSON.stringify(toolArgs)}]`,
+          '[Calling tool ${toolName} with args ${JSON.stringify(toolArgs)}]',
         );
 
         // Continue conversation with tool results
