@@ -445,6 +445,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Inspired by [Jumio Web SDK](https://github.com/Jumio/web-sdk) changelog format
+- Inspired by [AV Web SDK](https://github.com/AV/web-sdk) changelog format
 - Built with [simple-git](https://github.com/steveukx/git-js) for Git operations
 - Uses [semver](https://github.com/npm/node-semver) for version management
