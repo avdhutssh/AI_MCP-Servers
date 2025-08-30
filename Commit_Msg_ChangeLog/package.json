@@ -1,0 +1,33 @@
+{
+  "name": "automated-changelog-system",
+  "version": "0.3.6",
+  "description": "Automated changelog generation system driven by package.json versioning and custom commit tags",
+  "main": "src/changelog-generator.js",
+  "scripts": {
+    "changelog": "node src/changelog-generator.js",
+    "changelog:check": "node src/changelog-generator.js --check",
+    "changelog:version": "node src/version-helper.js",
+    "test": "node test/test-changelog.js",
+    "prepare": "npm run changelog"
+  },
+  "keywords": [
+    "changelog",
+    "automation",
+    "git",
+    "semantic-versioning",
+    "commit-messages"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "semver": "^7.7.2",
+    "simple-git": "^3.28.0",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
